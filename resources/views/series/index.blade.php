@@ -16,8 +16,8 @@
         @foreach ($series as $serie)
         
             <li class="list-group-item d-flex flex-row justify-content-between">
-                {{ $serie->nome }} 
-                <div class="d-flex flex-row">
+                <a href="/series/{{$serie->id}}/seasons">{{ $serie->nome }} </a>
+                <div class="d-flex flex-row col-2 justify-content-between">
                     <a href="/series/edit/{{$serie->id}}" class="btn btn-primary">Alterar</a>
                     <form action="/series/destroy/{{$serie->id}}" method="POST">
                         @csrf

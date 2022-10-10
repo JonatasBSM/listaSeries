@@ -12,7 +12,8 @@ class SeriesController extends Controller
     public function index(Request $request) {
 
         //pega valores da tabela Serie ordenando pelo nome
-        $series = Serie::query()->orderBy("nome")->get();
+        $series = Serie::all();
+        
 
         //pega mensagem sucesso/derrota através da session e depois esquece ela
         $mensagemSucesso = session("mensagem.sucesso");
@@ -29,15 +30,31 @@ class SeriesController extends Controller
 
         //Validação
         $request->validate([
-            "nome" => ["required","min:3"]
+            "nome" => ["required","min:3"],
+            "Temporadas" => "required",
+            "Episodios" => "required"
         ]);
 
+        
+       
         //salva nome da serie na tabela Serie
 
 
         //Maneira de preencher vários campos em uma linha só
         try {
-            $serie = Serie::create(["nome" => $request->input("nome")]);
+            $serie = Serie::create($request->all());
+            for ($i = 1; $i <= ($request->Temporadas); $i++) {
+                $season = $serie->seasons()->create([
+                    "number" => $i      
+                ]);
+                
+                for ($j = 1; $j <= ($request->Episodios); $j++) {
+                    $season->episodes()->create([
+                        "number" => $j
+                    ]);
+             
+                }
+            }
             $request->session()->flash("mensagem.sucesso", "Série {$serie->nome} armazenada com sucesso");
 
         } catch (Exception $e) {
@@ -50,7 +67,6 @@ class SeriesController extends Controller
     }
 
     public function edit(Serie $series) {
-        dd($series->temporadas);
         return view ("series.edit", ["serie" => $series]);
     }
 
