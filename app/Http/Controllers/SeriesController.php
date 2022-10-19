@@ -4,11 +4,19 @@ namespace App\Http\Controllers;
 use App\Models\Serie;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use PhpParser\Node\Stmt\TryCatch;
+use App\Repositories\SeriesRepository;
 
 class SeriesController extends Controller
 {
+
+    public function __construct(SeriesRepository $repository)
+    {  
+        $this->repository = $repository;
+    }
+
     public function index(Request $request) {
 
         //pega valores da tabela Serie ordenando pelo nome
@@ -35,33 +43,7 @@ class SeriesController extends Controller
             "Episodios" => "required"
         ]);
 
-        
-       
-        //salva nome da serie na tabela Serie
-
-
-        //Maneira de preencher vários campos em uma linha só
-        try {
-            $serie = Serie::create($request->all());
-            for ($i = 1; $i <= ($request->Temporadas); $i++) {
-                $season = $serie->seasons()->create([
-                    "number" => $i      
-                ]);
-                
-                for ($j = 1; $j <= ($request->Episodios); $j++) {
-                    $season->episodes()->create([
-                        "number" => $j
-                    ]);
-             
-                }
-            }
-            $request->session()->flash("mensagem.sucesso", "Série {$serie->nome} armazenada com sucesso");
-
-        } catch (Exception $e) {
-            $request->session()->flash("mensagem.falha", "Não foi possível armazenar a série {$serie->nome}");
-        }
-
-    
+        $serie = $this->repository->add($request);
 
         return redirect("/series");
     }
@@ -84,13 +66,7 @@ class SeriesController extends Controller
     public function destroy(Serie $series, Request $request) {
 
         //mensagem de sucesso/falha através de sessões
-        try {
-            Serie::destroy($series->id);
-            $request->session()->flash("mensagem.sucesso", "Série {$series->nome} removida com sucesso");
-
-        }catch (Exception $e) {
-            $request->session()->flash("mensagem.falha", "Série {$series->nome} não pode ser removida");
-        }
+        $this->repository->delete($series, $request);
         return redirect("/series");
     }
 }
